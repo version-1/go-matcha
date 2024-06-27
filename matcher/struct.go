@@ -10,12 +10,16 @@ func BeStruct() *anyStruct {
 	return &anyStruct{}
 }
 
-type anyStruct struct{}
-
-var _ Matcher = anyStruct{}
+type anyStruct struct {
+	options MatcherOptions
+}
 
 func (a anyStruct) Match(v any) bool {
 	if v == nil {
+		return false
+	}
+
+	if !a.options.AllowZero && isZero(v) {
 		return false
 	}
 
@@ -29,6 +33,11 @@ func (a anyStruct) Not() Matcher {
 
 func (a anyStruct) Pointer() Matcher {
 	return Ref(a)
+}
+
+func (a anyStruct) AllowZero() Matcher {
+	a.options.AllowZero = true
+	return a
 }
 
 func StructOf(fields map[string]any, opts ...func(m *structs.MatcherOptions)) Matcher {
@@ -47,8 +56,6 @@ type structFieldsMatcher struct {
 	fields  map[string]any
 	options structs.MatcherOptions
 }
-
-var _ Matcher = structFieldsMatcher{}
 
 func (m structFieldsMatcher) Match(v any) bool {
 	if v == nil {

@@ -80,6 +80,19 @@ func TestStructOfEqual(t *testing.T) {
 			Name: "John Doe",
 			Age:  25,
 		}, true},
+		{"struct matcher: nested matcher", matcher.StructOf(map[string]any{
+			"ID":        uid,
+			"GroupID":   uuid.Nil,
+			"Name":      matcher.BeString(),
+			"Age":       matcher.BeInt(),
+			"Status":    "",
+			"CreatedAt": time.Time{},
+			"UpdatedAt": time.Time{},
+		}), user{
+			ID:   uid,
+			Name: "John Doe",
+			Age:  25,
+		}, true},
 		{"struct matcher: not match", matcher.StructOf(map[string]any{
 			"ID":        uid,
 			"GroupID":   uuid.Nil,

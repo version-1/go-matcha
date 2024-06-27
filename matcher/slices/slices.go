@@ -1,8 +1,9 @@
 package slices
 
 type MatcherOptions struct {
-	Order    bool
-	Contains bool
+	AllowZero bool
+	Order     bool
+	Contains  bool
 }
 
 func WithPersistOrder(v bool) func(*MatcherOptions) {
