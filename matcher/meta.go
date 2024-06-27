@@ -1,6 +1,8 @@
 package matcher
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func BeAny() *beAny {
 	return &beAny{}

@@ -2,6 +2,7 @@ package matcher
 
 import (
 	"reflect"
+	"testing"
 
 	"github.com/version-1/go-matcha/matcher/slices"
 )
@@ -15,13 +16,8 @@ func BeSlice() *anySlice {
 }
 
 func (a anySlice) Match(v any) bool {
-	t := reflect.TypeOf(v)
-	switch t.Kind() {
-	case reflect.Slice, reflect.Array:
-		return true
-	default:
-		return false
-	}
+	s := MaySlice(v)
+	return s.IsSlice()
 }
 
 func (a anySlice) Not() Matcher {
@@ -127,9 +123,10 @@ func MaySlice(raw any) *maySlice {
 }
 
 type maySlice struct {
-	raw any
-	t   *reflect.Type
-	v   *reflect.Value
+	raw  any
+	t    *reflect.Type
+	v    *reflect.Value
+	test *testing.T
 }
 
 func (w maySlice) Length() int {

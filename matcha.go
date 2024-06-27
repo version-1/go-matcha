@@ -1,6 +1,8 @@
 package matcha
 
-import "github.com/version-1/go-matcha/matcher"
+import (
+	"github.com/version-1/go-matcha/matcher"
+)
 
 func Equal(expect, target any) bool {
 	switch m := expect.(type) {
