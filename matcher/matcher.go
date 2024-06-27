@@ -1,9 +1,5 @@
 package matcher
 
-import (
-	"reflect"
-)
-
 func equal(a, b any) bool {
 	v, ok := a.(Matcher)
 	if ok {
@@ -11,6 +7,10 @@ func equal(a, b any) bool {
 	}
 
 	return a == b
+}
+
+type MatcherOptions struct {
+	AllowZero bool
 }
 
 func IsMatcher(v any) bool {
@@ -24,60 +24,15 @@ type Matcher interface {
 	Not() Matcher
 }
 
-type RefMatcher struct {
-	m Matcher
-}
-
-var _ Matcher = RefMatcher{}
-
-func (r RefMatcher) Match(v any) bool {
-	if v == nil {
-		return r.m.Match(nil)
-	}
-
-	vv := reflect.ValueOf(v)
-	if vv.Kind() != reflect.Ptr {
-		return false
-	}
-
-	e := vv.Elem()
-	if !e.IsValid() {
-		return r.m.Match(nil)
-	}
-
-	return r.m.Match(e.Interface())
-}
-
-func (r RefMatcher) Not() Matcher {
-	return Not(r)
-}
-
-func (r RefMatcher) Pointer() Matcher {
-	return Ref(r)
-}
-
-func Ref(m Matcher) Matcher {
-	return &RefMatcher{m: m}
-}
-
-type notMatcher struct {
-	m Matcher
-}
-
-var _ Matcher = notMatcher{}
-
-func (e notMatcher) Match(v any) bool {
-	return !e.m.Match(v)
-}
-
-func (e notMatcher) Pointer() Matcher {
-	return Ref(e)
-}
-
-func (e notMatcher) Not() Matcher {
-	return Not(e)
-}
-
-func Not(m Matcher) Matcher {
-	return &notMatcher{m: m}
-}
+var _ Matcher = &RefMatcher{}
+var _ Matcher = &notMatcher{}
+var _ Matcher = beZero{}
+var _ Matcher = beAny{}
+var _ Matcher = anyBool{}
+var _ Matcher = anyInt{}
+var _ Matcher = anyString{}
+var _ Matcher = anySlice{}
+var _ Matcher = anyStruct{}
+var _ Matcher = sliceLenMatcher{}
+var _ Matcher = sliceOfMatcher{}
+var _ Matcher = structFieldsMatcher{}

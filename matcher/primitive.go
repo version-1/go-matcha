@@ -5,20 +5,31 @@ func BeString() *anyString {
 	return &anyString{}
 }
 
-type anyString struct{}
+type anyString struct {
+	options MatcherOptions
+}
 
 var _ Matcher = anyString{}
 
-func (s anyString) Match(v any) bool {
+func (m anyString) Match(v any) bool {
+	if !m.options.AllowZero && isZero(v) {
+		return false
+	}
+
 	return typeMatch[string](v)
 }
 
-func (s anyString) Not() Matcher {
-	return Not(s)
+func (m anyString) Not() Matcher {
+	return Not(m)
 }
 
-func (s anyString) Pointer() Matcher {
-	return Ref(s)
+func (m anyString) Pointer() Matcher {
+	return Ref(m)
+}
+
+func (m anyString) AllowZero() Matcher {
+	m.options.AllowZero = true
+	return m
 }
 
 // int
@@ -26,31 +37,39 @@ func BeInt() *anyInt {
 	return &anyInt{}
 }
 
-type anyInt struct{}
+type anyInt struct {
+	options MatcherOptions
+}
 
-var _ Matcher = anyInt{}
+func (m anyInt) Match(v any) bool {
+	if !m.options.AllowZero && isZero(v) {
+		return false
+	}
 
-func (e anyInt) Match(v any) bool {
 	return typeMatch[int](v)
 }
 
-func (e anyInt) Not() Matcher {
-	return Not(e)
+func (m anyInt) Not() Matcher {
+	return Not(m)
 }
 
-func (e anyInt) Pointer() Matcher {
-	return Ref(e)
+func (m anyInt) Pointer() Matcher {
+	return Ref(m)
+}
+
+func (m anyInt) AllowZero() Matcher {
+	m.options.AllowZero = true
+	return m
 }
 
 // bool
 type anyBool struct{}
 
-var _ Matcher = anyBool{}
-
 func BeBool() *anyBool {
 	return &anyBool{}
 }
 
+// INFO: bool matcher allows zero by default
 func (e anyBool) Match(v any) bool {
 	return typeMatch[bool](v)
 }

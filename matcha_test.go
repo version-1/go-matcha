@@ -12,6 +12,44 @@ type dummy struct {
 	a int
 }
 
+func TestZeroValueEqual(t *testing.T) {
+	tests := []struct {
+		name   string
+		expect any
+		target any
+		ans    bool
+	}{
+		// zero value
+		{"any matcher with zero", matcher.BeAny(), 0, false},
+		{"any matcher with empty struct", matcher.BeAny(), dummy{}, false},
+		{"any matcher with string array", matcher.BeAny(), []string{}, false},
+		{"any matcher with int array", matcher.BeAny(), []int{}, false},
+		{"string matcher with zero string", matcher.BeString(), "", false},
+		{"int matcher with zero int", matcher.BeInt(), 0, false},
+		{"slice matcher with zero string slice", matcher.BeSlice(), []string{}, false},
+		{"slice matcher with zero any slice", matcher.BeSlice(), []any{}, false},
+		{"struct matcher with zero struct", matcher.BeStruct(), dummy{}, false},
+		// (allow zero)
+		{"any matcher with zero", matcher.BeAny().AllowZero(), 0, true},
+		{"any matcher with empty struct", matcher.BeAny().AllowZero(), dummy{}, true},
+		{"any matcher with string array", matcher.BeAny().AllowZero(), []string{}, true},
+		{"any matcher with int array", matcher.BeAny().AllowZero(), []int{}, true},
+		{"string matcher with zero string", matcher.BeString().AllowZero(), "", true},
+		{"int matcher with zero int", matcher.BeInt().AllowZero(), 0, true},
+		{"slice matcher with zero string slice", matcher.BeSlice().AllowZero(), []string{}, true},
+		{"slice matcher with zero any slice", matcher.BeSlice().AllowZero(), []any{}, true},
+		{"struct matcher with zero struct", matcher.BeStruct().AllowZero(), dummy{}, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if Equal(tt.expect, tt.target) != tt.ans {
+				t.Errorf("Equal(%v, %v) should return %v", tt.expect, tt.target, tt.ans)
+			}
+		})
+	}
+}
+
 func TestEqual(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -29,7 +67,6 @@ func TestEqual(t *testing.T) {
 		// any
 		{"any matcher with num", matcher.BeAny(), 1, true},
 		{"any matcher with string", matcher.BeAny(), "abca", true},
-		{"any matcher with struct", matcher.BeAny(), dummy{}, true},
 		// string
 		{"string matcher with string", matcher.BeString(), "123", true},
 		{"string matcher with not string", matcher.BeString(), 123, false},
@@ -296,7 +333,7 @@ func TestSliceLenEqual(t *testing.T) {
 
 func TestAnyStructEqual(t *testing.T) {
 	var dNil *dummy
-	var dValid *dummy = &dummy{}
+	var dValid *dummy = &dummy{1}
 
 	tests := []struct {
 		name   string
@@ -304,7 +341,7 @@ func TestAnyStructEqual(t *testing.T) {
 		target any
 		ans    bool
 	}{
-		{"struct matcher: match", matcher.BeStruct(), dummy{}, true},
+		{"struct matcher: match", matcher.BeStruct(), dummy{}, false},
 		{"struct matcher: match 2", matcher.BeStruct(), dummy{1}, true},
 		{"struct matcher: not match", matcher.BeStruct(), []string{"a", "b", "c"}, false},
 		{"struct matcher: not match 2", matcher.BeStruct(), nil, false},

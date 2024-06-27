@@ -7,25 +7,34 @@ import (
 	"github.com/version-1/go-matcha/matcher/slices"
 )
 
-type anySlice struct{}
-
-var _ Matcher = anySlice{}
+type anySlice struct {
+	options MatcherOptions
+}
 
 func BeSlice() *anySlice {
 	return &anySlice{}
 }
 
-func (a anySlice) Match(v any) bool {
+func (m anySlice) Match(v any) bool {
+	if !m.options.AllowZero && isZero(v) {
+		return false
+	}
+
 	s := MaySlice(v)
 	return s.IsSlice()
 }
 
-func (a anySlice) Not() Matcher {
-	return Not(a)
+func (m anySlice) Not() Matcher {
+	return Not(m)
 }
 
-func (a anySlice) Pointer() Matcher {
-	return Ref(a)
+func (m anySlice) Pointer() Matcher {
+	return Ref(m)
+}
+
+func (m anySlice) AllowZero() Matcher {
+	m.options.AllowZero = true
+	return m
 }
 
 func SliceOf(elements []any, opts ...func(m *slices.MatcherOptions)) Matcher {
@@ -44,8 +53,6 @@ type sliceOfMatcher struct {
 	elements []any
 	options  slices.MatcherOptions
 }
-
-var _ Matcher = sliceOfMatcher{}
 
 func (m sliceOfMatcher) Match(v any) bool {
 	vw := MaySlice(v)
