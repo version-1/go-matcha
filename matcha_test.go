@@ -5,6 +5,7 @@ import (
 
 	"github.com/version-1/go-matcha/internal/pointer"
 	"github.com/version-1/go-matcha/matcher"
+	"github.com/version-1/go-matcha/matcher/slices"
 )
 
 type dummy struct {
@@ -187,7 +188,7 @@ func TestSliceOfEqual(t *testing.T) {
 			"slice of matcher with contains: match",
 			matcher.SliceOf(
 				[]any{1, 2, 3},
-				matcher.WithSliceOfContains(true),
+				slices.WithContains(true),
 			),
 			[]int{1, 2, 3, 4},
 			true,
@@ -196,7 +197,7 @@ func TestSliceOfEqual(t *testing.T) {
 			"slice of matcher with contains: not match",
 			matcher.SliceOf(
 				[]any{1, 2, 3},
-				matcher.WithSliceOfContains(true),
+				slices.WithContains(true),
 			),
 			[]int{1, 2, 4, 5},
 			false,

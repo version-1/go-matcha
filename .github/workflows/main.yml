@@ -1,9 +1,6 @@
 name: go-matcha test
 run-name: ${{ github.actor }} is testing out the app
-on:
-  push:
-    branches:
-      - '*'
+on: push
 jobs:
   test:
     runs-on: ubuntu-latest

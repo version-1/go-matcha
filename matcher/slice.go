@@ -2,6 +2,8 @@ package matcher
 
 import (
 	"reflect"
+
+	"github.com/version-1/go-matcha/matcher/slices"
 )
 
 type anySlice struct{}
@@ -30,8 +32,8 @@ func (a anySlice) Pointer() Matcher {
 	return Ref(a)
 }
 
-func SliceOf(elements []any, opts ...func(m *SliceOfMatcherOptions)) Matcher {
-	o := SliceOfMatcherOptions{
+func SliceOf(elements []any, opts ...func(m *slices.MatcherOptions)) Matcher {
+	o := slices.MatcherOptions{
 		Order:    true,
 		Contains: false,
 	}
@@ -42,26 +44,9 @@ func SliceOf(elements []any, opts ...func(m *SliceOfMatcherOptions)) Matcher {
 	return sliceOfMatcher{elements: elements, options: o}
 }
 
-func WithSliceOfPersistOrder(v bool) func(*SliceOfMatcherOptions) {
-	return func(o *SliceOfMatcherOptions) {
-		o.Order = v
-	}
-}
-
-func WithSliceOfContains(v bool) func(*SliceOfMatcherOptions) {
-	return func(o *SliceOfMatcherOptions) {
-		o.Contains = v
-	}
-}
-
-type SliceOfMatcherOptions struct {
-	Order    bool
-	Contains bool
-}
-
 type sliceOfMatcher struct {
 	elements []any
-	options  SliceOfMatcherOptions
+	options  slices.MatcherOptions
 }
 
 var _ Matcher = sliceOfMatcher{}
@@ -133,4 +118,73 @@ func (m sliceLenMatcher) Not() Matcher {
 
 func (m sliceLenMatcher) Pointer() Matcher {
 	return Ref(m)
+}
+
+func MaySlice(raw any) *maySlice {
+	v := reflect.ValueOf(raw)
+	t := v.Type()
+	return &maySlice{raw: raw, v: &v, t: &t}
+}
+
+type maySlice struct {
+	raw any
+	t   *reflect.Type
+	v   *reflect.Value
+}
+
+func (w maySlice) Length() int {
+	if !w.IsSlice() {
+		return 0
+	}
+
+	return w.v.Len()
+}
+
+func (w maySlice) Index(n int) (any, bool) {
+	if !w.IsSlice() {
+		return nil, false
+	}
+
+	if n < 0 || n >= w.v.Len() {
+		return nil, false
+	}
+
+	res := w.v.Index(n).Interface()
+
+	return res, true
+}
+
+func (w maySlice) FindIndex(target any, excludes map[int]bool) int {
+	for i := 0; i < w.Length(); i++ {
+		v, ok := w.Index(i)
+		if !ok {
+			return -1
+		}
+
+		if _, ok := excludes[i]; ok {
+			continue
+		}
+
+		if equal(v, target) {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func (w maySlice) IsSlice() bool {
+	if w.t == nil {
+		return false
+	}
+	return isSlice(*w.t)
+}
+
+func isSlice(v reflect.Type) bool {
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array:
+		return true
+	default:
+		return false
+	}
 }
