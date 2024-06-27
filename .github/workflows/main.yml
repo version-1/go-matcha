@@ -1,0 +1,21 @@
+name: go-matcha test
+run-name: ${{ github.actor }} is testing out the app
+on:
+  push:
+    branches:
+      - '*'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.22-alpine3.20
+    defaults:
+      run:
+        shell: sh
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: go mod download
+      - name: Run tests
+        run: go test -v ./...
