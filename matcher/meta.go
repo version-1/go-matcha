@@ -75,6 +75,24 @@ type RefMatcher struct {
 	m Matcher
 }
 
+func (r RefMatcher) Title() string {
+	v, ok := r.m.(Recorder)
+	if ok {
+		return v.Title()
+	}
+
+	return ""
+}
+
+func (r RefMatcher) Records() []Record {
+	v, ok := r.m.(Recorder)
+	if ok {
+		return v.Records()
+	}
+
+	return []Record{}
+}
+
 func (r RefMatcher) Match(v any) bool {
 	if v == nil {
 		return r.m.Match(nil)
@@ -103,4 +121,13 @@ func (r RefMatcher) Pointer() Matcher {
 
 func Ref(m Matcher) Matcher {
 	return &RefMatcher{m: m}
+}
+
+func ExtractIfPossible(mayRef any) any {
+	p, ok := mayRef.(*RefMatcher)
+	if ok {
+		return p.m
+	}
+
+	return mayRef
 }

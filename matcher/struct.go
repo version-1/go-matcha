@@ -40,7 +40,9 @@ func (a anyStruct) AllowZero() Matcher {
 	return a
 }
 
-func StructOf(fields map[string]any, opts ...func(m *structs.MatcherOptions)) Matcher {
+type StructMap map[string]any
+
+func StructOf(fields StructMap, opts ...func(m *structs.MatcherOptions)) Matcher {
 	o := structs.MatcherOptions{
 		Contains: true,
 	}
@@ -49,49 +51,95 @@ func StructOf(fields map[string]any, opts ...func(m *structs.MatcherOptions)) Ma
 		opt(&o)
 	}
 
-	return structFieldsMatcher{fields: fields, options: o}
+	return &structOfMatcher{fields: fields, options: o}
 }
 
-type structFieldsMatcher struct {
-	fields  map[string]any
+type structOfMatcher struct {
+	fields  StructMap
 	options structs.MatcherOptions
+	records []Record
 }
 
-func (m structFieldsMatcher) Match(v any) bool {
+func (m structOfMatcher) Title() string {
+	return "StructOfMatcher got errors."
+}
+
+func (m structOfMatcher) Records() []Record {
+	return m.records
+}
+
+func (m *structOfMatcher) Match(v any) bool {
 	if v == nil {
+		m.records = append(m.records, Record{
+			Matcher: m,
+			Code:    RecordCodeTargetIsNil,
+			Actual:  v,
+		})
 		return false
 	}
 
 	s := MayStruct(v)
 	if !s.IsStruct() {
+		m.records = append(m.records, Record{
+			Matcher: m,
+			Code:    RecordCodeNotStruct,
+			Actual:  v,
+		})
 		return false
 	}
 
 	fields := reflect.VisibleFields(*s.t)
 	if !m.options.Contains && len(m.fields) != len(fields) {
+		m.records = append(m.records, Record{
+			Matcher: m,
+			Code:    RecordCodeWrongFieldCount,
+			Expect:  len(m.fields),
+			Actual:  len(fields),
+		})
 		return false
 	}
 
 	for k, v := range m.fields {
 		f := s.v.FieldByName(k)
 		if !f.IsValid() {
-			return false
+			m.records = append(m.records, Record{
+				Matcher: m,
+				Key:     k,
+				Expect:  v,
+				Actual:  nil,
+				Code:    RecordCodeFieldNotFound,
+			})
+			continue
 		}
 
 		if !equal(v, f.Interface()) {
-			return false
+			r := Record{
+				Matcher: m,
+				Key:     k,
+				Expect:  v,
+				Actual:  f.Interface(),
+				Code:    RecordCodeNotEqual,
+			}
+
+			rr, ok := v.(Recorder)
+			if ok {
+				r.SetChildren(rr.Records())
+			}
+			m.records = append(m.records, r)
+
+			continue
 		}
 	}
 
-	return true
+	return len(m.records) == 0
 }
 
-func (a structFieldsMatcher) Not() Matcher {
-	return Not(a)
+func (m structOfMatcher) Not() Matcher {
+	return Not(&m)
 }
 
-func (a structFieldsMatcher) Pointer() Matcher {
-	return Ref(a)
+func (m structOfMatcher) Pointer() Matcher {
+	return Ref(&m)
 }
 
 func MayStruct(raw any) *mayStruct {

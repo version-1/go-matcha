@@ -34,5 +34,5 @@ var _ Matcher = anyString{}
 var _ Matcher = anySlice{}
 var _ Matcher = anyStruct{}
 var _ Matcher = sliceLenMatcher{}
-var _ Matcher = sliceOfMatcher{}
-var _ Matcher = structFieldsMatcher{}
+var _ Matcher = &sliceOfMatcher{}
+var _ Matcher = &structOfMatcher{}

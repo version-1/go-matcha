@@ -46,15 +46,20 @@ func SliceOf(elements []any, opts ...func(m *slices.MatcherOptions)) Matcher {
 		opt(&o)
 	}
 
-	return sliceOfMatcher{elements: elements, options: o}
+	return &sliceOfMatcher{elements: elements, options: o}
 }
 
 type sliceOfMatcher struct {
 	elements []any
 	options  slices.MatcherOptions
+	errors   []error
 }
 
-func (m sliceOfMatcher) Match(v any) bool {
+func (m sliceOfMatcher) Errors() []error {
+	return m.errors
+}
+
+func (m *sliceOfMatcher) Match(v any) bool {
 	vw := MaySlice(v)
 	if !vw.IsSlice() {
 		return false
@@ -91,11 +96,11 @@ func (m sliceOfMatcher) Match(v any) bool {
 }
 
 func (m sliceOfMatcher) Not() Matcher {
-	return Not(m)
+	return Not(&m)
 }
 
 func (m sliceOfMatcher) Pointer() Matcher {
-	return Ref(m)
+	return Ref(&m)
 }
 
 type sliceLenMatcher struct {
