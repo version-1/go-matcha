@@ -1,6 +1,8 @@
 package matcher
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func equal(a, b any) bool {
 	v, ok := a.(Matcher)
@@ -32,12 +34,18 @@ func (r RefMatcher) Match(v any) bool {
 	if v == nil {
 		return r.m.Match(nil)
 	}
+
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Ptr {
 		return false
 	}
 
-	return r.m.Match(vv.Elem().Interface())
+	e := vv.Elem()
+	if !e.IsValid() {
+		return r.m.Match(nil)
+	}
+
+	return r.m.Match(e.Interface())
 }
 
 func (r RefMatcher) Not() Matcher {

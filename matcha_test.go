@@ -29,6 +29,7 @@ func TestEqual(t *testing.T) {
 		// any
 		{"any matcher with num", matcher.BeAny(), 1, true},
 		{"any matcher with string", matcher.BeAny(), "abca", true},
+		{"any matcher with struct", matcher.BeAny(), dummy{}, true},
 		// string
 		{"string matcher with string", matcher.BeString(), "123", true},
 		{"string matcher with not string", matcher.BeString(), 123, false},
@@ -282,6 +283,33 @@ func TestSliceLenEqual(t *testing.T) {
 	}{
 		{"slice length matcher: match", matcher.SliceLen(3), []string{"a", "b", "c"}, true},
 		{"slice length matcher: not match", matcher.SliceLen(3), []string{"a", "b", "c", "d"}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if Equal(tt.expect, tt.target) != tt.ans {
+				t.Errorf("Equal(%v, %v) should return %v", tt.expect, tt.target, tt.ans)
+			}
+		})
+	}
+}
+
+func TestAnyStructEqual(t *testing.T) {
+	var dNil *dummy
+	var dValid *dummy = &dummy{}
+
+	tests := []struct {
+		name   string
+		expect any
+		target any
+		ans    bool
+	}{
+		{"struct matcher: match", matcher.BeStruct(), dummy{}, true},
+		{"struct matcher: match 2", matcher.BeStruct(), dummy{1}, true},
+		{"struct matcher: not match", matcher.BeStruct(), []string{"a", "b", "c"}, false},
+		{"struct matcher: not match 2", matcher.BeStruct(), nil, false},
+		{"pointer struct matcher: match", matcher.BeStruct().Pointer(), dValid, true},
+		{"pointer struct matcher: not match", matcher.BeStruct().Pointer(), dNil, false},
 	}
 
 	for _, tt := range tests {
