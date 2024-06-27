@@ -2,6 +2,20 @@ package matcher
 
 import "reflect"
 
+func equal(a, b any) bool {
+	v, ok := a.(Matcher)
+	if ok {
+		return v.Match(b)
+	}
+
+	return a == b
+}
+
+func IsMatcher(v any) bool {
+	_, ok := v.(Matcher)
+	return ok
+}
+
 type Matcher interface {
 	Match(v any) bool
 	Pointer() Matcher
