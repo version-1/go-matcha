@@ -59,8 +59,6 @@ func TestEqual(t *testing.T) {
 		// primitive
 		{"num equal", 1, 1, true},
 		{"num not equal", 1, 2, false},
-		{"string equal", "abc", "abc", true},
-		{"string not qual", "abca", "abc", false},
 		{"bool equal", true, true, true},
 		{"bool not equal", true, false, false},
 		{"slice equal", []int{1, 2, 3}, []int{1, 2, 3}, true},
@@ -70,14 +68,6 @@ func TestEqual(t *testing.T) {
 		// any
 		{"any matcher with num", matcher.BeAny(), 1, true},
 		{"any matcher with string", matcher.BeAny(), "abca", true},
-		// string
-		{"string matcher with string", matcher.BeString(), "123", true},
-		{"string matcher with not string", matcher.BeString(), 123, false},
-		{"string matcher with string ref", matcher.BeString(), pointer.Ref("123"), false},
-		{"string ref matcher with string", matcher.BeString().Pointer(), "123", false},
-		{"string ref matcher with not string", matcher.BeString().Pointer(), 123, false},
-		{"string ref matcher with not string pointer", matcher.BeString().Pointer(), pointer.Ref(123), false},
-		{"string ref matcher with string ref", matcher.BeString().Pointer(), pointer.Ref("123"), true},
 		// int
 		{"int matcher with int", matcher.BeInt(), 123, true},
 		{"int matcher with not int", matcher.BeInt(), "123", false},

@@ -1,37 +1,5 @@
 package matcher
 
-// string
-func BeString() *anyString {
-	return &anyString{}
-}
-
-type anyString struct {
-	options MatcherOptions
-}
-
-var _ Matcher = anyString{}
-
-func (m anyString) Match(v any) bool {
-	if !m.options.AllowZero && isZero(v) {
-		return false
-	}
-
-	return typeMatch[string](v)
-}
-
-func (m anyString) Not() Matcher {
-	return Not(m)
-}
-
-func (m anyString) Pointer() Matcher {
-	return Ref(m)
-}
-
-func (m anyString) AllowZero() Matcher {
-	m.options.AllowZero = true
-	return m
-}
-
 // int
 func BeInt() *anyInt {
 	return &anyInt{}
