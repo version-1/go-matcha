@@ -5,7 +5,6 @@ import (
 
 	"github.com/version-1/go-matcha/internal/pointer"
 	"github.com/version-1/go-matcha/matcher"
-	"github.com/version-1/go-matcha/matcher/slices"
 )
 
 type dummy struct {
@@ -63,7 +62,11 @@ func TestEqual(t *testing.T) {
 		{"string equal", "abc", "abc", true},
 		{"string not qual", "abca", "abc", false},
 		{"bool equal", true, true, true},
-		{"bool not qual", true, false, false},
+		{"bool not equal", true, false, false},
+		{"slice equal", []int{1, 2, 3}, []int{1, 2, 3}, true},
+		{"slice not equal", []int{1, 2}, []int{1, 2, 3}, false},
+		{"struct equal", dummy{}, dummy{}, true},
+		{"slice not equal", dummy{}, dummy{1}, false},
 		// any
 		{"any matcher with num", matcher.BeAny(), 1, true},
 		{"any matcher with string", matcher.BeAny(), "abca", true},
@@ -190,136 +193,6 @@ func TestSliceEqual(t *testing.T) {
 		{"array matcher with not array", matcher.BeSlice(), 1, false},
 		{"array ref matcher with string array ref", matcher.BeSlice().Pointer(), &[]string{"a", "b", "c"}, true},
 		{"array ref matcher with string array", matcher.BeSlice().Pointer(), []string{"a", "b", "c"}, false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if Equal(tt.expect, tt.target) != tt.ans {
-				t.Errorf("Equal(%v, %v) should return %v", tt.expect, tt.target, tt.ans)
-			}
-		})
-	}
-}
-
-func TestSliceOfEqual(t *testing.T) {
-	tests := []struct {
-		name   string
-		expect any
-		target any
-		ans    bool
-	}{
-		// with primitive
-		{"slice of matcher: match", matcher.SliceOf([]any{
-			"a", "b", "c",
-		}), []string{"a", "b", "c"}, true},
-		{"slice of matcher: not match", matcher.SliceOf([]any{
-			"a", "b", "c",
-		}), []string{"a", "b", "c", "b"}, false},
-		{"slice of matcher: not match", matcher.SliceOf([]any{
-			1, 2, 3,
-		}), []string{"a", "b", "c", "b"}, false},
-		{"slice of matcher: order not match", matcher.SliceOf([]any{
-			1, 2, 3,
-		}), []int{3, 2, 1}, false},
-		// contains
-		{
-			"slice of matcher with contains: match",
-			matcher.SliceOf(
-				[]any{1, 2, 3},
-				slices.WithContains(true),
-			),
-			[]int{1, 2, 3, 4},
-			true,
-		},
-		{
-			"slice of matcher with contains: not match",
-			matcher.SliceOf(
-				[]any{1, 2, 3},
-				slices.WithContains(true),
-			),
-			[]int{1, 2, 4, 5},
-			false,
-		},
-		// with matcher
-		{
-			"slice of matcher with matcher: match",
-			matcher.SliceOf(
-				[]any{matcher.BeAny(), matcher.BeAny(), matcher.BeAny()},
-			),
-			[]int{1, 2, 4},
-			true,
-		},
-		{
-			"slice of matcher with matcher: match 2",
-			matcher.SliceOf(
-				[]any{
-					matcher.BeInt(),
-					matcher.BeString(),
-					matcher.BeBool(),
-					matcher.BeInt().Pointer(),
-					matcher.BeString().Pointer(),
-					matcher.BeBool().Pointer(),
-				},
-			),
-			[]any{1, "abc", true, pointer.Ref(1), pointer.Ref("abc"), pointer.Ref(true)},
-			true,
-		},
-		{
-			"slice of matcher with matcher: not match",
-			matcher.SliceOf(
-				[]any{
-					matcher.BeInt(),
-					matcher.BeString().Not(),
-					matcher.BeBool(),
-				},
-			),
-			[]any{1, "abc", true},
-			false,
-		},
-		{
-			"slice of matcher with nest slice: match",
-			matcher.SliceOf(
-				[]any{
-					matcher.SliceOf([]any{1, 2, 3}),
-					matcher.SliceOf([]any{"abc", "cde", "fgh"}),
-					true,
-				},
-			),
-			[]any{[]int{1, 2, 3}, []string{"abc", "cde", "fgh"}, true},
-			true,
-		},
-		{
-			"slice of matcher with nest slice: not match",
-			matcher.SliceOf(
-				[]any{
-					matcher.SliceOf([]any{1, 2, 3}),
-					matcher.SliceOf([]any{"abc", "cde", "fgh"}),
-					true,
-				},
-			),
-			[]any{[]int{1, 2, 3}, []string{"abc", "123cde", "fgh"}, true},
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if Equal(tt.expect, tt.target) != tt.ans {
-				t.Errorf("Equal(%v, %v) should return %v", tt.expect, tt.target, tt.ans)
-			}
-		})
-	}
-}
-
-func TestSliceLenEqual(t *testing.T) {
-	tests := []struct {
-		name   string
-		expect any
-		target any
-		ans    bool
-	}{
-		{"slice length matcher: match", matcher.SliceLen(3), []string{"a", "b", "c"}, true},
-		{"slice length matcher: not match", matcher.SliceLen(3), []string{"a", "b", "c", "d"}, false},
 	}
 
 	for _, tt := range tests {

@@ -2,6 +2,7 @@ package matcher
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/version-1/go-matcha/matcher/slices"
@@ -52,20 +53,34 @@ func SliceOf(elements []any, opts ...func(m *slices.MatcherOptions)) Matcher {
 type sliceOfMatcher struct {
 	elements []any
 	options  slices.MatcherOptions
-	errors   []error
+	records  []Record
 }
 
-func (m sliceOfMatcher) Errors() []error {
-	return m.errors
+func (m *sliceOfMatcher) Title() string {
+	return "SliceOfMatcher got errors"
+}
+
+func (m sliceOfMatcher) Records() []Record {
+	return m.records
 }
 
 func (m *sliceOfMatcher) Match(v any) bool {
+	if v == nil {
+		r := recordTargetIsNil(m, v)
+		m.records = append(m.records, r)
+		return false
+	}
+
 	vw := MaySlice(v)
 	if !vw.IsSlice() {
+		r := recordUnexpectedType(m, "Slice", v)
+		m.records = append(m.records, r)
 		return false
 	}
 
 	if !m.options.Contains && len(m.elements) != vw.Length() {
+		r := recordUnmatchLength(m, len(m.elements), vw.Length())
+		m.records = append(m.records, r)
 		return false
 	}
 
@@ -73,26 +88,32 @@ func (m *sliceOfMatcher) Match(v any) bool {
 		for i := range m.elements {
 			ele, ok := vw.Index(i)
 			if !ok {
-				return false
+				r := recordNotFound(m, strconv.Itoa(i))
+				m.records = append(m.records, r)
+				continue
 			}
 
-			if !equal(m.elements[i], ele) {
-				return false
+			if !Equal(m.elements[i], ele) {
+				r := recordNotEqual(m, strconv.Itoa(i), m.elements[i], ele)
+				m.records = append(m.records, r)
 			}
 		}
-		return true
+
+		return len(m.records) == 0
 	}
 
 	maps := map[int]bool{}
 	for i := 0; i < len(m.elements); i++ {
 		idx := vw.FindIndex(m.elements[i], maps)
 		if idx < 0 {
-			return false
+			ele, _ := vw.Index(i)
+			r := recordNotEqual(m, strconv.Itoa(i), m.elements[i], ele)
+			m.records = append(m.records, r)
 		}
 		maps[idx] = true
 	}
 
-	return true
+	return len(m.records) == 0
 }
 
 func (m sliceOfMatcher) Not() Matcher {
@@ -174,7 +195,7 @@ func (w maySlice) FindIndex(target any, excludes map[int]bool) int {
 			continue
 		}
 
-		if equal(v, target) {
+		if Equal(v, target) {
 			return i
 		}
 	}

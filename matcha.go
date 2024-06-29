@@ -11,12 +11,7 @@ import (
 )
 
 func Equal(expect, target any) bool {
-	switch m := expect.(type) {
-	case matcher.Matcher:
-		return m.Match(target)
-	default:
-		return expect == target
-	}
+	return matcher.Equal(expect, target)
 }
 
 func Test(t *testing.T, expect, target any) {
@@ -70,6 +65,11 @@ func (t *Testing) Records() []matcher.Record {
 }
 
 func (t *Testing) Error() {
+	t.PrintResult()
+	t.t.FailNow()
+}
+
+func (t *Testing) PrintResult() {
 	if len(t.r.Records()) == 0 {
 		return
 	}
@@ -81,5 +81,4 @@ func (t *Testing) Error() {
 
 	message := fmt.Sprintf("\n\n\n %s \n\n\n", strings.Join(msg, "\n\n"))
 	log.Println(message)
-	t.t.FailNow()
 }
