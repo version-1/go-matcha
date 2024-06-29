@@ -70,61 +70,35 @@ func (m structOfMatcher) Records() []Record {
 
 func (m *structOfMatcher) Match(v any) bool {
 	if v == nil {
-		m.records = append(m.records, Record{
-			Matcher: m,
-			Code:    RecordCodeTargetIsNil,
-			Actual:  v,
-		})
+		r := recordTargetIsNil(m, v)
+		m.records = append(m.records, r)
 		return false
 	}
 
 	s := MayStruct(v)
 	if !s.IsStruct() {
-		m.records = append(m.records, Record{
-			Matcher: m,
-			Code:    RecordCodeNotStruct,
-			Actual:  v,
-		})
+		r := recordUnexpectedType(m, "Struct", v)
+		m.records = append(m.records, r)
 		return false
 	}
 
 	fields := reflect.VisibleFields(*s.t)
 	if !m.options.Contains && len(m.fields) != len(fields) {
-		m.records = append(m.records, Record{
-			Matcher: m,
-			Code:    RecordCodeWrongFieldCount,
-			Expect:  len(m.fields),
-			Actual:  len(fields),
-		})
+		r := recordUnmatchLength(m, len(m.fields), len(fields))
+		m.records = append(m.records, r)
 		return false
 	}
 
 	for k, v := range m.fields {
 		f := s.v.FieldByName(k)
 		if !f.IsValid() {
-			m.records = append(m.records, Record{
-				Matcher: m,
-				Key:     k,
-				Expect:  v,
-				Actual:  nil,
-				Code:    RecordCodeFieldNotFound,
-			})
+			r := recordNotFound(m, k)
+			m.records = append(m.records, r)
 			continue
 		}
 
-		if !equal(v, f.Interface()) {
-			r := Record{
-				Matcher: m,
-				Key:     k,
-				Expect:  v,
-				Actual:  f.Interface(),
-				Code:    RecordCodeNotEqual,
-			}
-
-			rr, ok := v.(Recorder)
-			if ok {
-				r.SetChildren(rr.Records())
-			}
+		if !Equal(v, f.Interface()) {
+			r := recordNotEqual(m, k, v, f.Interface())
 			m.records = append(m.records, r)
 
 			continue

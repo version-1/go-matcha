@@ -1,12 +1,19 @@
 package matcher
 
-func equal(a, b any) bool {
-	v, ok := a.(Matcher)
+import "reflect"
+
+func Equal(expect, target any) bool {
+	v, ok := expect.(Matcher)
 	if ok {
-		return v.Match(b)
+		return v.Match(target)
 	}
 
-	return a == b
+	r := reflect.TypeOf(expect)
+	if r.Kind() == reflect.Slice || r.Kind() == reflect.Array {
+		return reflect.DeepEqual(expect, target)
+	}
+
+	return expect == target
 }
 
 type MatcherOptions struct {
