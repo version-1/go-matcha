@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/version-1/go-matcha/assert"
 	"github.com/version-1/go-matcha/matcher"
 	"github.com/version-1/go-matcha/matcher/structs"
 )
@@ -160,7 +161,7 @@ func TestStructOfNotMatch(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -189,7 +190,7 @@ func TestStructOfNotMatch(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -219,7 +220,7 @@ func TestStructOfNotMatch(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -251,7 +252,7 @@ func TestStructOfNotMatch(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -315,7 +316,7 @@ func TestStructOfNotMatch(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {

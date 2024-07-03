@@ -26,13 +26,13 @@ func TestMatchaTest(t *testing.T) {
 			name: "when test success, errof/failNow is not called",
 			subject: func() {
 				failNowCalled := false
-				tt := mytest{
+				mt := mytest{
 					failNow: func() {
 						failNowCalled = true
 					},
 				}
 
-				Test(tt, matcher.BeInt(), 123)
+				Test(mt, matcher.BeInt(), 123)
 
 				if failNowCalled {
 					t.Errorf("failNow should be called")

@@ -1,6 +1,8 @@
 package matcher
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func typeMatch[T any](v any) bool {
 	switch v.(type) {
