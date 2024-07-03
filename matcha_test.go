@@ -28,6 +28,7 @@ func TestZeroValueEqual(t *testing.T) {
 		{"slice matcher with zero string slice", matcher.BeSlice(), []string{}, false},
 		{"slice matcher with zero any slice", matcher.BeSlice(), []any{}, false},
 		{"struct matcher with zero struct", matcher.BeStruct(), dummy{}, false},
+		{"uuid matcher with zero uuid", matcher.BeUUID(), uuid.Nil, false},
 		// (allow zero)
 		{"any matcher with zero", matcher.BeAny().AllowZero(), 0, true},
 		{"any matcher with empty struct", matcher.BeAny().AllowZero(), dummy{}, true},
@@ -38,6 +39,7 @@ func TestZeroValueEqual(t *testing.T) {
 		{"slice matcher with zero string slice", matcher.BeSlice().AllowZero(), []string{}, true},
 		{"slice matcher with zero any slice", matcher.BeSlice().AllowZero(), []any{}, true},
 		{"struct matcher with zero struct", matcher.BeStruct().AllowZero(), dummy{}, true},
+		{"uuid matcher with zero uuid", matcher.BeUUID().AllowZero(), uuid.Nil, true},
 	}
 
 	for _, tt := range tests {
@@ -85,6 +87,11 @@ func TestEqual(t *testing.T) {
 		{"bool ref matcher with bool", matcher.BeBool().Pointer(), true, false},
 		{"bool ref matcher with not bool", matcher.BeBool().Pointer(), true, false},
 		{"bool ref matcher with bool ref", matcher.BeBool().Pointer(), pointer.Ref(true), true},
+		// uuid
+		{"uuid matcher with uuid", matcher.BeUUID(), uuid.New(), true},
+		{"uuid matcher with not uuid", matcher.BeUUID(), "123", false},
+		{"uuid ref matcher with uuid", matcher.BeUUID().Pointer(), pointer.Ref(uuid.New()), true},
+		{"uuid ref matcher with not uuid", matcher.BeUUID().Pointer(), pointer.Ref("123"), false},
 	}
 
 	for _, tt := range tests {
