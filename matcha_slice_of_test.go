@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/version-1/go-matcha/assert"
 	"github.com/version-1/go-matcha/internal/pointer"
 	"github.com/version-1/go-matcha/matcher"
 	"github.com/version-1/go-matcha/matcher/slices"
@@ -139,7 +140,7 @@ func TestSliceOfNotEqual(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -161,7 +162,7 @@ func TestSliceOfNotEqual(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -184,7 +185,7 @@ func TestSliceOfNotEqual(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -214,7 +215,7 @@ func TestSliceOfNotEqual(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -242,7 +243,7 @@ func TestSliceOfNotEqual(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 
 				for i, r := range records {
@@ -284,7 +285,7 @@ func TestSliceOfNotEqual(t *testing.T) {
 			},
 			assert: func(expect, target any, ans []matcher.Record) {
 				Equal(expect, target)
-				test := NewTesting(t, expect)
+				test := assert.New(t, expect, target)
 				records := test.Records()
 				if len(records) != len(ans) {
 					t.Errorf("Length should be %d, got %d", len(ans), len(records))

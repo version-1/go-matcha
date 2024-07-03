@@ -2,10 +2,119 @@ package matcha
 
 import (
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/version-1/go-matcha/internal/pointer"
 	"github.com/version-1/go-matcha/matcher"
 )
+
+type mytest struct {
+	failNow func()
+}
+
+func (m mytest) FailNow() {
+	m.failNow()
+}
+
+func TestMatchaTest(t *testing.T) {
+	tests := []struct {
+		name    string
+		subject func()
+	}{
+		{
+			name: "when test success, errof/failNow is not called",
+			subject: func() {
+				failNowCalled := false
+				mt := mytest{
+					failNow: func() {
+						failNowCalled = true
+					},
+				}
+
+				Test(mt, matcher.BeInt(), 123)
+
+				if failNowCalled {
+					t.Errorf("failNow should be called")
+				}
+			},
+		},
+		{
+			name: "when test fails, errof is called",
+			subject: func() {
+				failNowCalled := false
+				mt := mytest{
+					failNow: func() {
+						failNowCalled = true
+					},
+				}
+
+				Test(mt, matcher.BeInt(), 123)
+
+				if failNowCalled {
+					t.Errorf("failNow should not be called")
+				}
+			},
+		},
+		{
+			name: "when test fails, fail now is called",
+			subject: func() {
+				failNowCalled := false
+				mt := mytest{
+					failNow: func() {
+						failNowCalled = true
+					},
+				}
+
+				Test(mt, matcher.BeInt(), "123")
+
+				if !failNowCalled {
+					t.Errorf("failNow should be called")
+				}
+			},
+		},
+		{
+			name: "when test success and expect implements Records interface, fail now is not called",
+			subject: func() {
+				failNowCalled := false
+				mt := mytest{
+					failNow: func() {
+						failNowCalled = true
+					},
+				}
+
+				Test(mt, matcher.BeInt(), 1)
+
+				if failNowCalled {
+					t.Errorf("failNow should not be called")
+				}
+			},
+		},
+		{
+			name: "when test fails and expect implements Records interface, fail now is called",
+			subject: func() {
+				failNowCalled := false
+				mt := mytest{
+					failNow: func() {
+						failNowCalled = true
+					},
+				}
+
+				Test(mt, matcher.BeInt(), "123")
+
+				if !failNowCalled {
+					t.Errorf("failNow should be called")
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.subject()
+		})
+	}
+}
 
 type dummy struct {
 	a int
@@ -28,6 +137,8 @@ func TestZeroValueEqual(t *testing.T) {
 		{"slice matcher with zero string slice", matcher.BeSlice(), []string{}, false},
 		{"slice matcher with zero any slice", matcher.BeSlice(), []any{}, false},
 		{"struct matcher with zero struct", matcher.BeStruct(), dummy{}, false},
+		{"uuid matcher with zero uuid", matcher.BeUUID(), uuid.Nil, false},
+		{"time matcher with zero time", matcher.BeTime(), time.Time{}, false},
 		// (allow zero)
 		{"any matcher with zero", matcher.BeAny().AllowZero(), 0, true},
 		{"any matcher with empty struct", matcher.BeAny().AllowZero(), dummy{}, true},
@@ -38,6 +149,8 @@ func TestZeroValueEqual(t *testing.T) {
 		{"slice matcher with zero string slice", matcher.BeSlice().AllowZero(), []string{}, true},
 		{"slice matcher with zero any slice", matcher.BeSlice().AllowZero(), []any{}, true},
 		{"struct matcher with zero struct", matcher.BeStruct().AllowZero(), dummy{}, true},
+		{"uuid matcher with zero uuid", matcher.BeUUID().AllowZero(), uuid.Nil, true},
+		{"time matcher with zero time", matcher.BeTime().AllowZero(), time.Time{}, true},
 	}
 
 	for _, tt := range tests {
@@ -85,6 +198,18 @@ func TestEqual(t *testing.T) {
 		{"bool ref matcher with bool", matcher.BeBool().Pointer(), true, false},
 		{"bool ref matcher with not bool", matcher.BeBool().Pointer(), true, false},
 		{"bool ref matcher with bool ref", matcher.BeBool().Pointer(), pointer.Ref(true), true},
+		// uuid
+		{"uuid matcher with uuid", matcher.BeUUID(), uuid.New(), true},
+		{"uuid matcher with not uuid", matcher.BeUUID(), "123", false},
+		{"uuid ref matcher with uuid", matcher.BeUUID().Pointer(), pointer.Ref(uuid.New()), true},
+		{"uuid ref matcher with not uuid", matcher.BeUUID().Pointer(), pointer.Ref("123"), false},
+		// time
+		{"time matcher with time", matcher.BeTime(), time.Now(), true},
+		{"time matcher with not time", matcher.BeTime(), "123", false},
+		{"time matcher with pointer time", matcher.BeTime(), pointer.Ref(time.Now()), false},
+		{"time ref matcher with pointer time", matcher.BeTime().Pointer(), pointer.Ref(time.Now()), true},
+		{"time ref matcher with time", matcher.BeTime().Pointer(), time.Now(), false},
+		{"time ref matcher with not time", matcher.BeTime().Pointer(), pointer.Ref("123"), false},
 	}
 
 	for _, tt := range tests {
