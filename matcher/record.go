@@ -126,7 +126,6 @@ func (r Record) String() string {
 			return msg
 		}
 
-		fmt.Printf("expect: %T %#v\n", r.Root, r.Expect)
 		if r.Root != nil {
 			if isSliceOfMatcher(r.Root) {
 				return fmt.Sprintf("%sIndex ( %s ) didn't match.\n\n%sexpect: %v\n\n%sgot: %v", indent, r.Path(), chIndent, r.Expect, chIndent, r.Actual)

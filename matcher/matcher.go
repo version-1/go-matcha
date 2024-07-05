@@ -1,8 +1,14 @@
 package matcher
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func Equal(expect, target any) bool {
+	if expect == nil {
+		return target == nil
+	}
+
 	v, ok := expect.(Matcher)
 	if ok {
 		return v.Match(target)

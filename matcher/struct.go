@@ -43,9 +43,7 @@ func (a anyStruct) AllowZero() Matcher {
 type StructMap map[string]any
 
 func StructOf(fields StructMap, opts ...func(m *structs.MatcherOptions)) Matcher {
-	o := structs.MatcherOptions{
-		Contains: true,
-	}
+	o := structs.MatcherOptions{}
 
 	for _, opt := range opts {
 		opt(&o)
@@ -82,7 +80,7 @@ func (m *structOfMatcher) Match(v any) bool {
 		return false
 	}
 
-	fields := reflect.VisibleFields(*s.t)
+	fields := exportedFields(*s.t)
 	if !m.options.Contains && len(m.fields) != len(fields) {
 		r := recordUnmatchLength(m, len(m.fields), len(fields))
 		m.records = append(m.records, r)
@@ -114,6 +112,18 @@ func (m structOfMatcher) Not() Matcher {
 
 func (m structOfMatcher) Pointer() Matcher {
 	return Ref(&m)
+}
+
+func exportedFields(t reflect.Type) []reflect.StructField {
+	fields := reflect.VisibleFields(t)
+	var res []reflect.StructField
+	for _, f := range fields {
+		if f.IsExported() {
+			res = append(res, f)
+		}
+	}
+
+	return res
 }
 
 func MayStruct(raw any) *mayStruct {

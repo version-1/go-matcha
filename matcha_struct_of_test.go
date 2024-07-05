@@ -27,7 +27,14 @@ type group struct {
 	UpdatedAt time.Time
 }
 
+type credentials struct {
+	Token string
+}
+
+type EmbededUser struct{}
+
 type user struct {
+	EmbededUser
 	ID        uuid.UUID
 	GroupID   uuid.UUID
 	Name      string
@@ -35,6 +42,8 @@ type user struct {
 	Status    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+
+	credentials *credentials
 
 	Group *group
 	Posts []post
@@ -49,47 +58,59 @@ func TestStructOfEqual(t *testing.T) {
 		ans    bool
 	}{
 		{"struct matcher: match", matcher.StructOf(map[string]any{
-			"ID":        uuid.Nil,
-			"GroupID":   uuid.Nil,
-			"Name":      "",
-			"Age":       0,
-			"Status":    "",
-			"CreatedAt": time.Time{},
-			"UpdatedAt": time.Time{},
+			"EmbededUser": EmbededUser{},
+			"ID":          uuid.Nil,
+			"GroupID":     uuid.Nil,
+			"Name":        "",
+			"Age":         0,
+			"Status":      "",
+			"CreatedAt":   time.Time{},
+			"UpdatedAt":   time.Time{},
+			"Group":       (*group)(nil),
+			"Posts":       []post(nil),
 		}), user{}, true},
 		{"struct matcher: match 2", matcher.StructOf(map[string]any{
-			"ID":        uid,
-			"GroupID":   uuid.Nil,
-			"Name":      "John Doe",
-			"Age":       0,
-			"Status":    "",
-			"CreatedAt": time.Time{},
-			"UpdatedAt": time.Time{},
+			"EmbededUser": EmbededUser{},
+			"ID":          uid,
+			"GroupID":     uuid.Nil,
+			"Name":        "John Doe",
+			"Age":         0,
+			"Status":      "",
+			"CreatedAt":   time.Time{},
+			"UpdatedAt":   time.Time{},
+			"Group":       (*group)(nil),
+			"Posts":       []post(nil),
 		}), user{
 			ID:   uid,
 			Name: "John Doe",
 		}, true},
 		{"struct matcher: match 3", matcher.StructOf(map[string]any{
-			"ID":        uid,
-			"GroupID":   uuid.Nil,
-			"Name":      matcher.BeString(),
-			"Age":       matcher.BeInt(),
-			"Status":    "",
-			"CreatedAt": time.Time{},
-			"UpdatedAt": time.Time{},
+			"EmbededUser": EmbededUser{},
+			"ID":          uid,
+			"GroupID":     uuid.Nil,
+			"Name":        matcher.BeString(),
+			"Age":         matcher.BeInt(),
+			"Status":      "",
+			"CreatedAt":   time.Time{},
+			"UpdatedAt":   time.Time{},
+			"Group":       (*group)(nil),
+			"Posts":       []post(nil),
 		}), user{
 			ID:   uid,
 			Name: "John Doe",
 			Age:  25,
 		}, true},
 		{"struct matcher: nested matcher", matcher.StructOf(map[string]any{
-			"ID":        uid,
-			"GroupID":   uuid.Nil,
-			"Name":      matcher.BeString(),
-			"Age":       matcher.BeInt(),
-			"Status":    "",
-			"CreatedAt": time.Time{},
-			"UpdatedAt": time.Time{},
+			"EmbededUser": EmbededUser{},
+			"ID":          uid,
+			"GroupID":     uuid.Nil,
+			"Name":        matcher.BeString(),
+			"Age":         matcher.BeInt(),
+			"Status":      "",
+			"CreatedAt":   time.Time{},
+			"UpdatedAt":   time.Time{},
+			"Group":       (*group)(nil),
+			"Posts":       []post(nil),
 		}), user{
 			ID:   uid,
 			Name: "John Doe",
@@ -111,12 +132,12 @@ func TestStructOfEqual(t *testing.T) {
 			"ID":      uuid.Nil,
 			"GroupID": uuid.Nil,
 			"Name":    "",
-		}), user{}, true},
+		}, structs.WithContains(true)), user{}, true},
 		{"struct matcher, contains fields: not match", matcher.StructOf(map[string]any{
 			"ID":             uuid.Nil,
 			"GroupID":        uuid.Nil,
 			"WrongFieldName": "",
-		}), user{}, false},
+		}, structs.WithContains(true)), user{}, false},
 		{"struct matcher: not match", matcher.StructOf(map[string]any{
 			"ID":         uuid.Nil,
 			"GroupID":    uuid.Nil,
@@ -132,7 +153,7 @@ func TestStructOfEqual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("Equal: %s", tt.name), func(t *testing.T) {
 			if Equal(tt.expect, tt.target) != tt.ans {
-				t.Errorf("Equal(%v, %v) should return %v", tt.expect, tt.target, tt.ans)
+				t.Errorf("Equal(%#v, %#v) should return %v", tt.expect, tt.target, tt.ans)
 			}
 		})
 	}
@@ -208,7 +229,7 @@ func TestStructOfNotMatch(t *testing.T) {
 			name: "wrong field error",
 			expect: matcher.StructOf(matcher.StructMap{
 				"WrongField": uuid.Nil,
-			}),
+			}, structs.WithContains(true)),
 			target: user{
 				ID: uid,
 			},
@@ -246,7 +267,7 @@ func TestStructOfNotMatch(t *testing.T) {
 				{
 					Key:    "",
 					Expect: 1,
-					Actual: 9,
+					Actual: 10,
 					Code:   matcher.RecordCodeUnmatchLength,
 				},
 			},
@@ -286,7 +307,7 @@ func TestStructOfNotMatch(t *testing.T) {
 					"CreatedAt": time.Time{},
 					"UpdatedAt": time.Time{},
 				}).Pointer(),
-			}),
+			}, structs.WithContains(true)),
 			target: user{
 				ID:  uid,
 				Age: 24,
