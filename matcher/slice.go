@@ -211,6 +211,10 @@ func (w maySlice) IsSlice() bool {
 }
 
 func isSlice(v reflect.Type) bool {
+	if v == nil {
+		return false
+	}
+
 	switch v.Kind() {
 	case reflect.Slice, reflect.Array:
 		return true
